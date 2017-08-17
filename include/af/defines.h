@@ -462,6 +462,29 @@ typedef enum {
 } af_storage;
 #endif
 
+#if AF_API_VERSION >= 36
+typedef enum {
+    AF_METRIC_MEAN_SQUARES = 0,                 ///< Mean squares error metric
+    AF_METRIC_MATTES_MUTUAL_INFORMATION,        ///< Error metric using Mattes Method that uses pdf's
+} af_metric_type;
+#endif
+
+#if AF_API_VERSION >= 36
+typedef enum {
+    AF_OPTIMIZER_GRADIENT_DESCENT = 0,          ///< Standard gradient descent algorithm
+    AF_OPTIMIZER_REGULAT_STEP_GRADIENT_DESCENT, ///< Variation of gradient descent where large steps are prevented.
+    AF_OPTIMIZER_POWELL,                        ///< Powell optimization using Brent line search
+} af_optimizer_type;
+#endif
+
+#if AF_API_VERSION >= 36
+typedef enum {
+    AF_REGISTRATION_DEFAULT = 0,
+    AF_REGISTRATION_SYN_IMAGE,
+    AF_REGISTRATION_BSPLINE_SYN_IMAGE,
+} af_registration_type;
+#endif
+
 #ifdef __cplusplus
 namespace af
 {

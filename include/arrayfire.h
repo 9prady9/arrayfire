@@ -290,6 +290,21 @@
         contained in the \p afcu namespace provide methods to get the stream and native
         device id that ArrayFire is using.
    @}
+
+   @defgroup img_registration Image Registration
+   @{
+       \brief Image Registration Functions
+
+       @defgroup optimizers_img Optimizers
+
+       \brief Optimization techniques used in Image Registration
+
+       @defgroup metrics_img Metrics
+
+       \brief Dissimilarity/Similarity metrics used in Image Registration
+
+       @defgroup registration_methods Registration algorithms
+   @}
 @}
 
 
@@ -310,6 +325,7 @@
 #include "af/gfor.h"
 #include "af/graphics.h"
 #include "af/image.h"
+#include "af/image_registration.h"
 #include "af/index.h"
 #include "af/lapack.h"
 #include "af/random.h"
