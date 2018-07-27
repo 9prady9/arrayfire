@@ -1,0 +1,155 @@
+{
+  "context": {
+    "date": "2018-03-12 12:57:01",
+    "num_cpus": 4,
+    "mhz_per_cpu": 3700,
+    "cpu_scaling_enabled": false,
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "matmul/128/manual_time",
+      "iterations": 19409,
+      "real_time": 3.3798825081148053e+01,
+      "cpu_time": 3.4578523571538980e+01,
+      "time_unit": "us",
+      "Gflops": 1.2473024652808755e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/256/manual_time",
+      "iterations": 4931,
+      "real_time": 1.4236509693774127e+02,
+      "cpu_time": 1.4285995680389371e+02,
+      "time_unit": "us",
+      "Gflops": 2.3448240391334730e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/384/manual_time",
+      "iterations": 4292,
+      "real_time": 1.6474906104380233e+02,
+      "cpu_time": 1.6519233667287975e+02,
+      "time_unit": "us",
+      "Gflops": 7.0907843640621377e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/512/manual_time",
+      "iterations": 2876,
+      "real_time": 2.4382620132127946e+02,
+      "cpu_time": 2.4416267559109886e+02,
+      "time_unit": "us",
+      "Gflops": 1.1374576518246072e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/640/manual_time",
+      "iterations": 1863,
+      "real_time": 3.7513407836822313e+02,
+      "cpu_time": 3.7504020504562561e+02,
+      "time_unit": "us",
+      "Gflops": 1.4055903185505708e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/768/manual_time",
+      "iterations": 748,
+      "real_time": 9.3754430748663208e+02,
+      "cpu_time": 9.3635731417112368e+02,
+      "time_unit": "us",
+      "Gflops": 9.6796284436751762e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/896/manual_time",
+      "iterations": 689,
+      "real_time": 1.0359888635703917e+03,
+      "cpu_time": 1.0339327895500724e+03,
+      "time_unit": "us",
+      "Gflops": 1.4259496166136721e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1024/manual_time",
+      "iterations": 488,
+      "real_time": 1.4371581229508186e+03,
+      "cpu_time": 1.4348903442622957e+03,
+      "time_unit": "us",
+      "Gflops": 1.4983618353345366e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1152/manual_time",
+      "iterations": 490,
+      "real_time": 1.4325797081632645e+03,
+      "cpu_time": 1.4300850346938792e+03,
+      "time_unit": "us",
+      "Gflops": 2.1396650009691880e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1280/manual_time",
+      "iterations": 247,
+      "real_time": 2.8296392874493945e+03,
+      "cpu_time": 2.8251469757085019e+03,
+      "time_unit": "us",
+      "Gflops": 1.4736515168656572e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1408/manual_time",
+      "iterations": 198,
+      "real_time": 3.5331587222222247e+03,
+      "cpu_time": 3.5255982575757557e+03,
+      "time_unit": "us",
+      "Gflops": 1.5803658399115636e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1536/manual_time",
+      "iterations": 192,
+      "real_time": 3.6288013229166677e+03,
+      "cpu_time": 3.6223057135416716e+03,
+      "time_unit": "us",
+      "Gflops": 2.0012213469653616e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1664/manual_time",
+      "iterations": 117,
+      "real_time": 5.9724157435897423e+03,
+      "cpu_time": 5.9608560000000098e+03,
+      "time_unit": "us",
+      "Gflops": 1.5411881809890788e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1792/manual_time",
+      "iterations": 94,
+      "real_time": 7.4096026276595758e+03,
+      "cpu_time": 7.3966237659574635e+03,
+      "time_unit": "us",
+      "Gflops": 1.5528678553146315e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/1920/manual_time",
+      "iterations": 102,
+      "real_time": 6.8697503823529369e+03,
+      "cpu_time": 6.8570795588235369e+03,
+      "time_unit": "us",
+      "Gflops": 2.0623072565926113e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    },
+    {
+      "name": "matmul/2048/manual_time",
+      "iterations": 65,
+      "real_time": 1.0707808153846150e+04,
+      "cpu_time": 1.0688210738461543e+04,
+      "time_unit": "us",
+      "Gflops": 1.6053148458460853e+03,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Square Matrix dimension/Function runtime"
+    }
+  ]
+}

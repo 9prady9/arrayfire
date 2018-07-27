@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+</head>
+
+<body>
+
+<script src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js"
+        integrity="sha256-XF29CBwU1MWLaGEnsELogU6Y6rcc5nCkhhx89nFMIDQ="
+        crossorigin="anonymous"></script>
+
+<canvas id="af_chart1" width="512" height="128"></canvas>
+<canvas id="af_chart2" width="512" height="128"></canvas>
+
+<script>
+    function renderChart(chartId, jsonFile) {
+        function jsonResCallback(response) {
+            var benchData = response['benchmarks'];
+            var xpoints = benchData.map(function(obj) {
+                return obj['name'].split('/')[1];
+            });
+            var dprops = benchData[0]['label'].split('/');
+            var titleText = [
+                benchData[0]['name'].split('/')[0],
+                'Device : '+dprops[0],
+                'Compute : '+dprops[1]+' '+dprops[3],
+                'Toolkit: '+dprops[2],
+            ];
+
+            var options = {
+                title: {
+                    display: true,
+                    text: titleText
+                },
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: dprops[4]
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: dprops[5]
+                        }
+                    }],
+                }
+            };
+            var data = {
+                labels: xpoints,
+                datasets: [
+                    {
+                        label: "x-axis",
+                        pointBorderWidth: 3,
+                        pointRadius: 5,
+                        pointBackgroundColor: "rgba(230,145, 56, 0.2)",
+                        pointBorderColor: "rgba(7, 55, 99, 1)",
+                        borderColor: "rgba(230, 145, 56, 0.5)",
+                        backgroundColor: "rgba(230, 145, 56, 0.1)",
+                        data: [],
+                    }
+                ]
+            };
+            if ('Gflops' in benchData[0]) {
+                var ypoints = benchData.map(function(obj) {
+                    return obj['Gflops'];
+                });
+
+                data['datasets'][0]['label'] = "Gflops";
+                data['datasets'][0]['data'] = ypoints;
+            } else {
+                var xlabel = "Runtime in " + benchData[0]['time_unit'];
+
+                var ypoints = benchData.map(function(obj) {
+                    return obj['real_time'];
+                });
+
+                data['datasets'][0]['label'] = xlabel;
+                data['datasets'][0]['data'] = ypoints;
+            }
+
+            var ctx = document.getElementById(chartId);
+            var chart = new Chart(ctx,
+                {type: 'line', data: data, options: options});
+        }
+        $.ajax({
+            dataType: "json",
+            url: jsonFile,
+            mimeType: "text/plain",
+            success: jsonResCallback,
+        });
+    }
+
+    renderChart("af_chart1", "blas_opencl_benchmarks.json");
+    renderChart("af_chart2", "fft2_opencl_benchmarks.json");
+</script>
+
+</body>
+</html>

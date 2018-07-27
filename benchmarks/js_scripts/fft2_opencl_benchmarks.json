@@ -1,0 +1,65 @@
+{
+  "context": {
+    "date": "2018-03-12 12:59:48",
+    "num_cpus": 4,
+    "mhz_per_cpu": 3700,
+    "cpu_scaling_enabled": false,
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "fft2/7/128/manual_time",
+      "iterations": 11712,
+      "real_time": 6.1278271516393666e+01,
+      "cpu_time": 6.2031228312841534e+01,
+      "time_unit": "us",
+      "Gflops": 1.9467350160406024e+01,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Symmetric 2D Signal size/Function runtime"
+    },
+    {
+      "name": "fft2/8/256/manual_time",
+      "iterations": 9071,
+      "real_time": 7.1536880057325433e+01,
+      "cpu_time": 7.2236376143754811e+01,
+      "time_unit": "us",
+      "Gflops": 7.6440193619875203e+01,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Symmetric 2D Signal size/Function runtime"
+    },
+    {
+      "name": "fft2/9/512/manual_time",
+      "iterations": 4637,
+      "real_time": 1.6286975587664477e+02,
+      "cpu_time": 1.6314414492128543e+02,
+      "time_unit": "us",
+      "Gflops": 1.5672324115345526e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Symmetric 2D Signal size/Function runtime"
+    },
+    {
+      "name": "fft2/10/1024/manual_time",
+      "iterations": 1181,
+      "real_time": 5.8929819729043174e+02,
+      "cpu_time": 5.8870080270956805e+02,
+      "time_unit": "us",
+      "Gflops": 1.7853997745638560e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Symmetric 2D Signal size/Function runtime"
+    },
+    {
+      "name": "fft2/11/2048/manual_time",
+      "iterations": 238,
+      "real_time": 3.1675950756302527e+03,
+      "cpu_time": 3.1573982394958002e+03,
+      "time_unit": "us",
+      "Gflops": 1.4487687269004800e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Symmetric 2D Signal size/Function runtime"
+    },
+    {
+      "name": "fft2/12/4096/manual_time",
+      "iterations": 41,
+      "real_time": 1.7843241243902437e+04,
+      "cpu_time": 1.7788282707317059e+04,
+      "time_unit": "us",
+      "Gflops": 1.1142167733721757e+02,
+      "label": "GeForce_GTX_1060_3GB/OpenCL/NVIDIA CUDA/1.2/Symmetric 2D Signal size/Function runtime"
+    }
+  ]
+}

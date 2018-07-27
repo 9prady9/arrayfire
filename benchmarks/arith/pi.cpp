@@ -50,11 +50,9 @@ static void piOnDevice(benchmark::State &state)
 
     for (auto _ : state) {
         AF_BENCH_TIMER_START();
-
         af::array x = af::randu(samples, f32);
         af::array y = af::randu(samples, f32);
         pi_estimate = 4.0 * af::sum<float>(af::sqrt(x*x + y*y) < 1) / samples;
-
         AF_BENCH_TIMER_STOP();
     }
 
@@ -66,7 +64,6 @@ int main(int argc, char ** argv)
     try {
         int device = argc > 1 ? atoi(argv[1]) : 0;
         af::setDevice(device);
-        af::info();
 
         benchmark::RegisterBenchmark("Host_PI_Estimate", piOnHost)->
             Unit(benchmark::kMillisecond);

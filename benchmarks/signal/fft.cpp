@@ -33,9 +33,7 @@ static void fft2(benchmark::State& state)
 
     for (auto _ : state) {
         AF_BENCH_TIMER_START();
-
         af::array B = af::fft2(A);
-
         AF_BENCH_TIMER_STOP();
 
         //Following should come after AF_BENCH_TIMER_STOP
@@ -44,6 +42,11 @@ static void fft2(benchmark::State& state)
     }
 
     state.counters["Gflops"] = 10.0 * N * N * M / (timeInSecs * 1e9);
+
+    AF_GET_DEVICE_PROPS();
+    info.push_back("Symmetric 2D Signal size");
+    info.push_back("Function runtime");
+    state.SetLabel(join(info, "/").c_str());
 }
 
 BENCHMARK(fft2)->Apply(customArgs)->
@@ -54,7 +57,6 @@ int main(int argc, char ** argv)
     try {
         int device = argc > 1 ? atoi(argv[1]) : 0;
         af::setDevice(device);
-        af::info();
 
         benchmark::Initialize(&argc, argv);
         benchmark::RunSpecifiedBenchmarks();
