@@ -57,7 +57,8 @@ jobs:
             - name: Install Atlas
               if: matrix.blas_backend == 'Atlas'
               run: sudo apt-get install -y libatlas-base-dev \
-                                           libatlas3-base
+                                           liblapack-dev \
+                                           libblas-dev
 
             - name: CMake Configure
               run: |
