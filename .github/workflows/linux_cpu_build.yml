@@ -6,18 +6,19 @@ on:
     branches:
     - master
 
-name: CI
+name: CPU Backend
 
 env:
     NINJA_VER: 1.9.0
 
 jobs:
     build_cpu:
-        name: Linux CPU
+        name: Linux
         runs-on: ubuntu-18.04
         strategy:
             matrix:
-                BLAS_BACKEND: ["OpenBLAS", "Atlas"]
+                fail-fast: false
+                blas_backend: [OpenBLAS, Atlas]
         steps:
             - name: Checkout Repository
               uses: actions/checkout@master
@@ -26,8 +27,15 @@ jobs:
               shell: bash
               run: git submodule update --init --recursive
 
-            - name: Download Ninja
+            - name: Cache Ninja
+              uses: actions/cache@v1
               id: ninja
+              with:
+                  path: ninja
+                  key: ${{ runner.os }}-ninja
+
+            - name: Download Ninja
+              if: steps.ninja.outputs.cache-hit != 'true'
               run: |
                   wget --quiet "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VER}/ninja-linux.zip"
                   unzip ./ninja-linux.zip
@@ -43,14 +51,13 @@ jobs:
                                           liblapacke-dev
 
             - name: Install OpenBLAS
-              if: ${{ matrix.BLAS_BACKEND }} == "OpenBLAS"
+              if: matrix.blas_backend == 'OpenBLAS'
               run: sudo apt-get install -y libopenblas-dev
 
             - name: Install Atlas
-              if: ${{ matrix.BLAS_BACKEND }} == "Atlas"
+              if: matrix.blas_backend == 'Atlas'
               run: sudo apt-get install -y libatlas-base-dev \
-                                           liblapack-dev \
-                                           libblas-dev \
+                                           libatlas3-base
 
             - name: CMake Configure
               run: |
