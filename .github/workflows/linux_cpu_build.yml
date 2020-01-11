@@ -18,7 +18,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                blas_backend: [OpenBLAS, Atlas]
+                blas_backend: [Atlas, MKL, OpenBLAS]
         steps:
             - name: Checkout Repository
               uses: actions/checkout@master
@@ -42,15 +42,26 @@ jobs:
                                           libfftw3-dev \
                                           liblapacke-dev
 
-            - name: Install OpenBLAS
-              if: matrix.blas_backend == 'OpenBLAS'
-              run: sudo apt-get install -y libopenblas-dev
-
             - name: Install Atlas
               if: matrix.blas_backend == 'Atlas'
               run: sudo apt-get install -y libatlas-base-dev
 
+            - name: Install MKL
+              if: matrix.blas_backend == 'MKL'
+              run: |
+                  wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+                  sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+                  sudo sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
+                  sudo apt-get -qq update
+                  sudo apt-get install -y intel-mkl-64bit-2020.0-088
+
+            - name: Install OpenBLAS
+              if: matrix.blas_backend == 'OpenBLAS'
+              run: sudo apt-get install -y libopenblas-dev
+
             - name: CMake Configure
+              env:
+                  USE_MKL: ${{ matrix.blas_backend == 'MKL' }}
               run: |
                   mkdir build && cd build
                   cmake -G Ninja \
@@ -58,6 +69,7 @@ jobs:
                       -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF \
                       -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_EXAMPLES:BOOL=OFF \
                       -DAF_BUILD_FORGE:BOOL=ON \
+                      -DUSE_CPU_MKL:BOOL=$USE_MKL \
                       ..
 
             - name: Build
