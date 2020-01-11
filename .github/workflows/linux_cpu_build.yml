@@ -1,0 +1,73 @@
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+name: CI
+
+env:
+    NINJA_VER: 1.9.0
+
+jobs:
+    build_cpu:
+        name: Linux CPU
+        runs-on: ubuntu-18.04
+        strategy:
+            matrix:
+                BLAS_BACKEND: ["OpenBLAS", "Atlas"]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@master
+
+            - name: Checkout Submodules
+              shell: bash
+              run: git submodule update --init --recursive
+
+            - name: Download Ninja
+              id: ninja
+              run: |
+                  wget --quiet "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VER}/ninja-linux.zip"
+                  unzip ./ninja-linux.zip
+                  chmod +x ninja
+                  ${GITHUB_WORKSPACE}/ninja --version
+
+            - name: Install Common Dependencies
+              run: |
+                  sudo apt-get install -y libfreeimage-dev \
+                                          libglfw3-dev \
+                                          libboost-dev \
+                                          libfftw3-dev \
+                                          liblapacke-dev
+
+            - name: Install OpenBLAS
+              if: ${{ matrix.BLAS_BACKEND }} == "OpenBLAS"
+              run: sudo apt-get install -y libopenblas-dev
+
+            - name: Install Atlas
+              if: ${{ matrix.BLAS_BACKEND }} == "Atlas"
+              run: sudo apt-get install -y libatlas-base-dev \
+                                           liblapack-dev \
+                                           libblas-dev \
+
+            - name: CMake Configure
+              run: |
+                  mkdir build && cd build
+                  cmake -G Ninja \
+                      -DCMAKE_MAKE_PROGRAM:FILEPATH=${GITHUB_WORKSPACE}/ninja \
+                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF \
+                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_EXAMPLES:BOOL=OFF \
+                      -DAF_BUILD_FORGE:BOOL=ON \
+                      ..
+
+            - name: Build
+              run: |
+                  cd ${GITHUB_WORKSPACE}/build
+                  cmake --build . -- -j2
+
+            - name: Run Tests
+              run: |
+                  cd ${GITHUB_WORKSPACE}/build
+                  ctest -j2 -R cpu
