@@ -16,8 +16,8 @@ jobs:
         name: Linux
         runs-on: ubuntu-18.04
         strategy:
+            fail-fast: false
             matrix:
-                fail-fast: false
                 blas_backend: [OpenBLAS, Atlas]
         steps:
             - name: Checkout Repository
