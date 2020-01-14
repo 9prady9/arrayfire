@@ -80,13 +80,7 @@ jobs:
                       -DBUILDNAME:STRING=${buildname} \
                       ..
 
-            - name: Build Project
+            - name: Build and Test
               run: |
                   cd ${GITHUB_WORKSPACE}/build
-                  cmake --build . -- -j2
-
-            - name: Run Tests
-              run: |
-                  cd ${GITHUB_WORKSPACE}/build
-                  ctest -R cpu -j2
-                  ctest -D Experimental -T Submit
+                  ctest -D Experimental -T Test -T Submit -R cpu -j4
