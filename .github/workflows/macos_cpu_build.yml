@@ -1,0 +1,58 @@
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+name: CPU Backend
+
+env:
+    NINJA_VER: 1.9.0
+
+jobs:
+    build_cpu:
+        name: macos
+        runs-on: macos-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@master
+
+            - name: Checkout Submodules
+              shell: bash
+              run: git submodule update --init --recursive
+
+            - name: Download Ninja
+              run: |
+                  wget --quiet "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VER}/ninja-mac.zip"
+                  unzip ./ninja-mac.zip
+                  chmod +x ninja
+                  ${GITHUB_WORKSPACE}/ninja --version
+
+            - name: Install Common Dependencies
+              run: |
+                  sudo brew install glfw freeimage boost fftw3 lapack openblas
+
+            - name: CMake Configure
+              run: |
+                  ref=$(echo ${GITHUB_REF} | awk '/refs\/pull\/[0-9]+\/merge/{print $0}')
+                  prnum=$(echo $ref | awk '{split($0, a, "/"); print a[3]}')
+                  branch=$(git rev-parse --abbrev-ref HEAD)
+                  buildname=$(if [ -z "$prnum" ]; then echo "$branch"; else echo "PR-$prnum"; fi)
+                  buildname="$buildname-cpu-openblas"
+                  mkdir build && cd build
+                  cmake -G Ninja \
+                      -DCMAKE_MAKE_PROGRAM:FILEPATH=${GITHUB_WORKSPACE}/ninja \
+                      -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
+                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF \
+                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_EXAMPLES:BOOL=OFF \
+                      -DAF_BUILD_FORGE:BOOL=ON \
+                      -DUSE_CPU_MKL:BOOL=$USE_MKL \
+                      -DBUILDNAME:STRING=${buildname} \
+                      ..
+
+            - name: Build and Test
+              run: |
+                  cd ${GITHUB_WORKSPACE}/build
+                  ctest -D Experimental -T Test -T Submit -R cpu -j2
