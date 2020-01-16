@@ -13,7 +13,7 @@ env:
 
 jobs:
     build_cpu:
-        name: macos
+        name: Macos
         runs-on: macos-latest
         steps:
             - name: Checkout Repository
@@ -32,7 +32,7 @@ jobs:
 
             - name: Install Common Dependencies
               run: |
-                  brew install glfw freeimage boost fftw lapack openblas
+                  brew install fontconfig glfw freeimage boost fftw lapack openblas
 
             - name: CMake Configure
               run: |
@@ -41,6 +41,7 @@ jobs:
                   branch=$(git rev-parse --abbrev-ref HEAD)
                   buildname=$(if [ -z "$prnum" ]; then echo "$branch"; else echo "PR-$prnum"; fi)
                   buildname="$buildname-cpu-openblas"
+                  echo " -------- $ref    $prnum    $branch $buildname"
                   mkdir build && cd build
                   cmake -G Ninja \
                       -DCMAKE_MAKE_PROGRAM:FILEPATH=${GITHUB_WORKSPACE}/ninja \
