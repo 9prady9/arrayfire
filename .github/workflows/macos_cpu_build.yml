@@ -32,7 +32,7 @@ jobs:
 
             - name: Install Common Dependencies
               run: |
-                  brew install glfw freeimage boost fftw3 lapack openblas
+                  brew install glfw freeimage boost fftw lapack openblas
 
             - name: CMake Configure
               run: |
