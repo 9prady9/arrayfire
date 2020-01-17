@@ -154,6 +154,7 @@ function(find_mkl_library)
       IntelSWTools/compilers_and_libraries/windows/tbb/lib/intel64/${msvc_dir}
       ""
       intel64
+      intel64_win
       intel64/gcc4.7)
   mark_as_advanced(MKL_${mkl_args_NAME}_LINK_LIBRARY)
 
@@ -173,6 +174,7 @@ function(find_mkl_library)
       PATH_SUFFIXES
         ""
         intel64
+        intel64_win
         intel64/gcc4.7
         IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64
         IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64

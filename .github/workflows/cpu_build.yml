@@ -8,23 +8,105 @@ on:
 
 name: ci
 
-env:
-    NINJA_VER: 1.9.0
-
+#jobs:
+#    build_cpu:
+#        name: CPU
+#        runs-on: ${{ matrix.os }}
+#        env:
+#          NINJA_VER: 1.9.0
+#        strategy:
+#            fail-fast: false
+#            matrix:
+#                blas_backend: [Atlas, MKL, OpenBLAS]
+#                os: [ubuntu-18.04, macos-latest]
+#                exclude:
+#                    - os: macos-latest
+#                      blas_backend: Atlas
+#                    - os: macos-latest
+#                      blas_backend: MKL
+#        steps:
+#            - name: Checkout Repository
+#              uses: actions/checkout@master
+#
+#            - name: Checkout Submodules
+#              shell: bash
+#              run: git submodule update --init --recursive
+#
+#            - name: Download Ninja
+#              env:
+#                  OS_NAME: ${{ matrix.os }}
+#              run: |
+#                  os_suffix=$(if [ $OS_NAME == 'macos-latest' ]; then echo "mac"; else echo "linux"; fi)
+#                  wget --quiet "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VER}/ninja-${os_suffix}.zip"
+#                  unzip ./ninja-${os_suffix}.zip
+#                  chmod +x ninja
+#                  ${GITHUB_WORKSPACE}/ninja --version
+#
+#            - name: Install Common Dependencies for Macos
+#              if: matrix.os == 'macos-latest'
+#              run: |
+#                  brew install fontconfig glfw freeimage boost fftw lapack openblas
+#
+#            - name: Install Common Dependencies for Ubuntu
+#              if: matrix.os == 'ubuntu-18.04'
+#              run: |
+#                  sudo apt-get -qq update
+#                  sudo apt-get install -y libfreeimage-dev \
+#                                          libglfw3-dev \
+#                                          libboost-dev \
+#                                          libfftw3-dev \
+#                                          liblapacke-dev
+#
+#            - name: Install Atlas for Ubuntu
+#              if: matrix.os == 'ubuntu-18.04' && matrix.blas_backend == 'Atlas'
+#              run: sudo apt-get install -y libatlas-base-dev
+#
+#            - name: Install MKL for Ubuntu
+#              if: matrix.os == 'ubuntu-18.04' && matrix.blas_backend == 'MKL'
+#              run: |
+#                  wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+#                  sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+#                  sudo sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
+#                  sudo apt-get -qq update
+#                  sudo apt-get install -y intel-mkl-64bit-2020.0-088
+#
+#            - name: Install OpenBLAS for Ubuntu
+#              if: matrix.os == 'ubuntu-18.04' && matrix.blas_backend == 'OpenBLAS'
+#              run: sudo apt-get install -y libopenblas-dev
+#
+#            - name: CMake Configure
+#              env:
+#                  USE_MKL: ${{ matrix.blas_backend == 'MKL' }}
+#                  BLAS_BACKEND: ${{ matrix.blas_backend }}
+#              run: |
+#                  ref=$(echo ${GITHUB_REF} | awk '/refs\/pull\/[0-9]+\/merge/{print $0}')
+#                  prnum=$(echo $ref | awk '{split($0, a, "/"); print a[3]}')
+#                  branch=$(git rev-parse --abbrev-ref HEAD)
+#                  buildname=$(if [ -z "$prnum" ]; then echo "$branch"; else echo "PR-$prnum"; fi)
+#                  buildname="$buildname-cpu-$BLAS_BACKEND"
+#                  mkdir build && cd build
+#                  cmake -G Ninja \
+#                      -DCMAKE_MAKE_PROGRAM:FILEPATH=${GITHUB_WORKSPACE}/ninja \
+#                      -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
+#                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF \
+#                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_EXAMPLES:BOOL=OFF \
+#                      -DAF_BUILD_FORGE:BOOL=ON \
+#                      -DUSE_CPU_MKL:BOOL=$USE_MKL \
+#                      -DBUILDNAME:STRING=${buildname} \
+#                      ..
+#
+#            - name: Build and Test
+#              run: |
+#                  cd ${GITHUB_WORKSPACE}/build
+#                  ctest -D Experimental -T Test -T Submit -R cpu -j2
 jobs:
-    build_cpu:
-        name: CPU
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                blas_backend: [Atlas, MKL, OpenBLAS]
-                os: [ubuntu-18.04, macos-latest]
-                exclude:
-                    - os: macos-latest
-                      blas_backend: Atlas
-                    - os: macos-latest
-                      blas_backend: MKL
+    window_build_cpu:
+        name: CPU (OpenBLAS, windows-latest)
+        runs-on: windows-latest
+        env:
+            VCPKG_HASH: 2b78cac373da1bde47d4c99d3c7c5f96398181a4 # 2019.08 tag
+            MKL_URL: "http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16222/w_mkl_2020.0.166.exe"
+# all commits above the above tag in vcpkg has long path build issues on windows job
         steps:
             - name: Checkout Repository
               uses: actions/checkout@master
@@ -33,69 +115,78 @@ jobs:
               shell: bash
               run: git submodule update --init --recursive
 
-            - name: Download Ninja
-              env:
-                  OS_NAME: ${{ matrix.os }}
+            - name: VCPKG Cache
+              uses: actions/cache@v1
+              id: vcpkg-cache
+              with:
+                path: vcpkg
+                key: vcpkg-common-deps-${{ runner.os }}-${{ env.VCPKG_HASH }}
+
+            - name: Install VCPKG Common Deps
+              if: steps.vcpkg-cache.outputs.cache-hit != 'true'
               run: |
-                  os_suffix=$(if [ $OS_NAME == 'macos-latest' ]; then echo "mac"; else echo "linux"; fi)
-                  wget --quiet "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VER}/ninja-${os_suffix}.zip"
-                  unzip ./ninja-${os_suffix}.zip
-                  chmod +x ninja
-                  ${GITHUB_WORKSPACE}/ninja --version
+                  git clone --recursive https://github.com/microsoft/vcpkg
+                  Set-Location -Path .\vcpkg
+                  git reset --hard $env:VCPKG_HASH
+                  .\bootstrap-vcpkg.bat
+                  .\vcpkg.exe install --triplet x64-windows freeimage freetype glfw3
+                  Remove-Item .\downloads,.\buildtrees,.\packages -Recurse -Force
 
-            - name: Install Common Dependencies for Macos
-              if: matrix.os == 'macos-latest'
+            - name: Intel MKL Cache
+              uses: actions/cache@v1
+              id: intel-mkl-cache
+              with:
+                path: IntelSWTools.tgz
+                key: w_mkl_2020_0_166-${{ runner-os }}
+
+            - name: Install Intel MKL
+              if: steps.intel-mkl-cache.outputs.cache-hit != 'true'
               run: |
-                  brew install fontconfig glfw freeimage boost fftw lapack openblas
+                  $cwd = (Get-Item -Path ".\").FullName
+                  Invoke-WebRequest -Uri $env:MKL_URL -OutFile .\mkl_2020_0_166.exe
+                  Start-Process -Wait -FilePath "$cwd\mkl_2020_0_166.exe" -ArgumentList "--x --s --f `"$cwd\intel-mkl`""
+                  Start-Process -Wait -FilePath "$cwd\intel-mkl\install.exe" -ArgumentList "install --eula=accept --output=`"$cwd\intelmkl_install_log.txt`" --installdir=`"$cwd\IntelSWTools`" --components=CERT_COMODO,CERT_INTEL,CMP_LIB_COMMON,CMP_LIB_CONDA_INDEX,WW_TBB_CONDA_INTEL64,WW_TBB_LIBS_INTEL64,WW_TBB_LIBS_STANDALONE_INTEL64,WW_CMP_CONDA_INTEL64,WW_OPENMP_INTEL64,WW_ICL_ARCHSHARED_VARS,WW_CMP_ARCHSHARED_VARS,CMP_SHORTCUTS_BUILD_ENV_INTEL64,WW_MKL_CORE_COMMON,WW_MKL_CORE_COMMON_PS_ISS,WW_MKL_CONDA_INTEL64,WW_MKL_C_CORE_PS,WW_MKL_CORE_COMMON_PS,WW_MKL_CORE_INTEL64,WW_MKL_CORE_PS_INTEL64,MKL_SHORTCUTS,WW_MKL_C_CORE_INTEL64,WW_MKL_TBB_INTEL64,WW_SL_REDIST_INTEL64"
 
-            - name: Install Common Dependencies for Ubuntu
-              if: matrix.os == 'ubuntu-18.04'
+            - name: Archive Intel MKL Install Log
+              if: steps.intel-mkl-cache.outputs.cache-hit != 'true'
+              uses: actions/upload-artifact@v1
+              with:
+                  name: intel-mkl-install-log
+                  path: intelmkl_install_log.txt
+
+            - name: Unpack Intel MKL Cache
+              if: steps.intel-mkl-cache.outputs.cache-hit == 'true'
               run: |
-                  sudo apt-get install -y libfreeimage-dev \
-                                          libglfw3-dev \
-                                          libboost-dev \
-                                          libfftw3-dev \
-                                          liblapacke-dev
+                  echo "Unpacking Intel MKL"
 
-            - name: Install Atlas for Ubuntu
-              if: matrix.os == 'ubuntu-18.04' && matrix.blas_backend == 'Atlas'
-              run: sudo apt-get install -y libatlas-base-dev
-
-            - name: Install MKL for Ubuntu
-              if: matrix.os == 'ubuntu-18.04' && matrix.blas_backend == 'MKL'
-              run: |
-                  wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-                  sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-                  sudo sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
-                  sudo apt-get -qq update
-                  sudo apt-get install -y intel-mkl-64bit-2020.0-088
-
-            - name: Install OpenBLAS for Ubuntu
-              if: matrix.os == 'ubuntu-18.04' && matrix.blas_backend == 'OpenBLAS'
-              run: sudo apt-get install -y libopenblas-dev
-
-            - name: CMake Configure
-              env:
-                  USE_MKL: ${{ matrix.blas_backend == 'MKL' }}
-                  BLAS_BACKEND: ${{ matrix.blas_backend }}
-              run: |
-                  ref=$(echo ${GITHUB_REF} | awk '/refs\/pull\/[0-9]+\/merge/{print $0}')
-                  prnum=$(echo $ref | awk '{split($0, a, "/"); print a[3]}')
-                  branch=$(git rev-parse --abbrev-ref HEAD)
-                  buildname=$(if [ -z "$prnum" ]; then echo "$branch"; else echo "PR-$prnum"; fi)
-                  buildname="$buildname-cpu-$BLAS_BACKEND"
-                  mkdir build && cd build
-                  cmake -G Ninja \
-                      -DCMAKE_MAKE_PROGRAM:FILEPATH=${GITHUB_WORKSPACE}/ninja \
-                      -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
-                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF \
-                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_EXAMPLES:BOOL=OFF \
-                      -DAF_BUILD_FORGE:BOOL=ON \
-                      -DUSE_CPU_MKL:BOOL=$USE_MKL \
-                      -DBUILDNAME:STRING=${buildname} \
-                      ..
-
-            - name: Build and Test
-              run: |
-                  cd ${GITHUB_WORKSPACE}/build
-                  ctest -D Experimental -T Test -T Submit -R cpu -j2
+#            - name: CMake Configure
+#              run: |
+#                  $cwd = (Get-Item -Path ".\").FullName
+#                  $ref = $env:GITHUB_REF | %{ if ($_ -match "/refs/pull/[0-9]+/merge") { $_;} }
+#                  $prnum = $ref | %{$_.Split("/")[3]}
+#                  $branch = git rev-parse --abbrev-ref HEAD
+#                  $buildname = if($prnum -eq $null) { $branch } else { "PR-$prnum" }
+#                  $buildname = "$buildname-cpu-openblas"
+#                  New-Item -Path . -Name "build" -ItemType "directory"
+#                  ls "$cwd\IntelSWTools\compilers_and_libraries\windows\mkl\"
+#                  $Env:MKLROOT = "$cwd\IntelSWTools\compilers_and_libraries\windows\mkl"
+#                  Set-Location -Path .\build
+#                  cmake -G "Visual Studio 16 2019" -A x64 `
+#                      -DCMAKE_TOOLCHAIN_FILE:FILEPATH="$cwd/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+#                      -DUSE_CPU_MKL:BOOL=ON -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo `
+#                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF `
+#                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_EXAMPLES:BOOL=OFF `
+#                      -DAF_BUILD_FORGE:BOOL=OFF `
+#                      -DBUILDNAME:STRING=$buildname `
+#                      ..
+#
+#            - name: Build and Test
+#              run: |
+#                  $cwd = (Get-Item -Path ".\").FullName
+#                  $redist = "$cwd\IntelSWTools\compilers_and_libraries\windows\redist"
+#                  $Env:PATH += ";$cwd/vcpkg/installed/x64-windows/bin"
+#                  $Env:PATH += ";$redist\intel64\compiler"
+#                  $Env:PATH += ";$redist\intel64\mkl"
+#                  $Env:PATH += ";$redist\intel64\tbb\vc_mt"
+#                  Set-Location -Path $cwd/build
+#                  ctest -D Experimental -T Test -T Submit -R cpu -j2
