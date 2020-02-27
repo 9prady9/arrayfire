@@ -51,6 +51,12 @@ if(ArrayFire_CPU_FOUND)
   # Surface example
   add_executable(surface_cpu surface.cpp)
   target_link_libraries(surface_cpu ArrayFire::afcpu)
+
+  add_executable(blip_cpu blip.cpp)
+  target_link_libraries(blip_cpu ArrayFire::afcpu)
+
+  add_executable(vortex_cpu vortex.cpp)
+  target_link_libraries(vortex_cpu ArrayFire::afcpu)
 endif()
 
 if(ArrayFire_CUDA_FOUND)
@@ -80,6 +86,12 @@ if(ArrayFire_CUDA_FOUND)
 
   add_executable(surface_cuda surface.cpp)
   target_link_libraries(surface_cuda ArrayFire::afcuda)
+
+  add_executable(blip_cuda blip.cpp)
+  target_link_libraries(blip_cuda ArrayFire::afcuda)
+
+  add_executable(vortex_cuda vortex.cpp)
+  target_link_libraries(vortex_cuda ArrayFire::afcuda)
 endif()
 
 if(ArrayFire_OpenCL_FOUND)
@@ -110,4 +122,10 @@ if(ArrayFire_OpenCL_FOUND)
 
   add_executable(surface_opencl surface.cpp)
   target_link_libraries(surface_opencl ArrayFire::afopencl)
+
+  add_executable(blip_opencl blip.cpp)
+  target_link_libraries(blip_opencl ArrayFire::afopencl)
+
+  add_executable(vortex_opencl vortex.cpp)
+  target_link_libraries(vortex_opencl ArrayFire::afopencl)
 endif()
