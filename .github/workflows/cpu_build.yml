@@ -9,124 +9,13 @@ on:
 name: ci
 
 jobs:
-    build_cpu:
-        name: CPU
-        runs-on: ${{ matrix.os }}
-        env:
-          NINJA_VER: 1.9.0
-          CMAKE_VER: 3.5.1
-        strategy:
-            fail-fast: false
-            matrix:
-                blas_backend: [Atlas, MKL, OpenBLAS]
-                os: [ubuntu-16.04, ubuntu-18.04, macos-latest]
-                exclude:
-                    - os: ubuntu-16.04
-                      blas_backend: Atlas
-                    - os: macos-latest
-                      blas_backend: Atlas
-                    - os: macos-latest
-                      blas_backend: MKL
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@master
-
-            - name: Checkout Submodules
-              shell: bash
-              run: git submodule update --init --recursive
-
-            - name: Download Ninja
-              env:
-                  OS_NAME: ${{ matrix.os }}
-              run: |
-                  os_suffix=$(if [ $OS_NAME == 'macos-latest' ]; then echo "mac"; else echo "linux"; fi)
-                  wget --quiet "https://github.com/ninja-build/ninja/releases/download/v${NINJA_VER}/ninja-${os_suffix}.zip"
-                  unzip ./ninja-${os_suffix}.zip
-                  chmod +x ninja
-                  ${GITHUB_WORKSPACE}/ninja --version
-
-            - name: Download CMake 3.5.1 for Linux
-              if: matrix.os != 'macos-latest'
-              env:
-                  OS_NAME: ${{ matrix.os }}
-              run: |
-                  cmake_suffix=$(if [ $OS_NAME == 'macos-latest' ]; then echo "Darwin-x86_64"; else echo "Linux-x86_64"; fi)
-                  cmake_url=$(echo "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-${cmake_suffix}.tar.gz")
-                  wget --quiet "${cmake_url}"
-                  tar -xf ./cmake-${CMAKE_VER}-${cmake_suffix}.tar.gz
-                  cmake_install_dir=$(echo "cmake-${CMAKE_VER}-x86_64")
-                  mv cmake-${CMAKE_VER}-${cmake_suffix} ${cmake_install_dir}
-                  cmake_lnx_dir=$(echo "${cmake_install_dir}/bin")
-                  cmake_osx_dir=$(echo "${cmake_install_dir}/CMake.app/Contents/bin")
-                  cmake_dir=$(if [ $OS_NAME == 'macos-latest' ]; then echo "${cmake_osx_dir}"; else echo "${cmake_lnx_dir}"; fi)
-                  echo "::set-env name=CMAKE_PROGRAM::$(pwd)/${cmake_dir}/cmake"
-
-            - name: Install Dependencies for Macos
-              if: matrix.os == 'macos-latest'
-              run: |
-                  brew install boost fontconfig glfw freeimage fftw lapack openblas
-                  echo "::set-env name=CMAKE_PROGRAM::cmake"
-
-            - name: Install Common Dependencies for Ubuntu
-              if: matrix.os == 'ubuntu-16.04' || matrix.os == 'ubuntu-18.04'
-              run: |
-                  sudo apt-get -qq update
-                  sudo apt-get install -y libfreeimage-dev \
-                                          libglfw3-dev \
-                                          libfftw3-dev \
-                                          liblapacke-dev
-
-            - name: Install Atlas for Ubuntu
-              if: matrix.os == 'ubuntu-18.04' && matrix.blas_backend == 'Atlas'
-              run: sudo apt-get install -y libatlas-base-dev
-
-            - name: Install MKL for Ubuntu
-              if: (matrix.os == 'ubuntu-16.04' || matrix.os == 'ubuntu-18.04') && matrix.blas_backend == 'MKL'
-              run: |
-                  wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-                  sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
-                  sudo sh -c 'echo deb https://apt.repos.intel.com/mkl all main > /etc/apt/sources.list.d/intel-mkl.list'
-                  sudo apt-get -qq update
-                  sudo apt-get install -y intel-mkl-64bit-2020.0-088
-
-            - name: Install OpenBLAS for Ubuntu
-              if: (matrix.os == 'ubuntu-16.04' || matrix.os == 'ubuntu-18.04') && matrix.blas_backend == 'OpenBLAS'
-              run: sudo apt-get install -y libopenblas-dev
-
-            - name: CMake Configure
-              env:
-                  USE_MKL: ${{ matrix.blas_backend == 'MKL' }}
-                  BLAS_BACKEND: ${{ matrix.blas_backend }}
-              run: |
-                  ref=$(echo ${GITHUB_REF} | awk '/refs\/pull\/[0-9]+\/merge/{print $0}')
-                  prnum=$(echo $ref | awk '{split($0, a, "/"); print a[3]}')
-                  branch=$(git rev-parse --abbrev-ref HEAD)
-                  buildname=$(if [ -z "$prnum" ]; then echo "$branch"; else echo "PR-$prnum"; fi)
-                  dashboard=$(if [ -z "$prnum" ]; then echo "Continuous"; else echo "Experimental"; fi)
-                  buildname="$buildname-cpu-$BLAS_BACKEND"
-                  mkdir build && cd build
-                  ${CMAKE_PROGRAM} -G Ninja \
-                      -DCMAKE_MAKE_PROGRAM:FILEPATH=${GITHUB_WORKSPACE}/ninja \
-                      -DBOOST_ROOT:PATH=${BOOST_ROOT_1_72_0} \
-                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF \
-                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_EXAMPLES:BOOL=ON \
-                      -DAF_BUILD_FORGE:BOOL=ON \
-                      -DUSE_CPU_MKL:BOOL=$USE_MKL \
-                      -DBUILDNAME:STRING=${buildname} \
-                      ..
-                  echo "::set-env name=CTEST_DASHBOARD::${dashboard}"
-
-            - name: Build and Test
-              run: |
-                  cd ${GITHUB_WORKSPACE}/build
-                  ctest -D Experimental --track ${CTEST_DASHBOARD} -T Test -T Submit -R cpu -j2
-
     window_build_cpu:
         name: CPU (OpenBLAS, windows-latest)
         runs-on: windows-latest
         env:
           VCPKG_HASH: b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6 # March 29, 2020 - [hdf5] add tools and fortran feature
           LAPACKE_VER: 3.7.0
+          NINJA_VER: 1.10.0
         steps:
             - name: Checkout Repository
               uses: actions/checkout@master
@@ -152,28 +41,12 @@ jobs:
                   .\vcpkg.exe install --triplet x64-windows fftw3 freeimage freetype glfw3 openblas
                   Remove-Item .\downloads,.\buildtrees,.\packages -Recurse -Force
 
-#            - name: Lapack Cache
-#              uses: actions/cache@v1
-#              id: lapack-cache
-#              with:
-#                path: lapack
-#                key: lapack-${{ env.LAPACKE_VER }}-2
-#
-#            - name: Download lapack
-#              if: steps.lapack-cache.outputs.cache-hit != 'true'
-#              run: |
-#                  New-Item -ItemType "directory" -Path .\lapacke
-#                  Set-Location -Path .\lapacke
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/$env:LAPACKE_VER/Dynamic-MINGW/Win64/liblapacke.dll -OutFile liblapacke.dll
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/$env:LAPACKE_VER/Dynamic-MINGW/Win64/liblapacke.lib -OutFile liblapacke.lib
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/$env:LAPACKE_VER/Dynamic-MINGW/Win64/liblapack.dll -OutFile liblapack.dll
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/$env:LAPACKE_VER/Dynamic-MINGW/Win64/liblapack.lib -OutFile liblapack.lib
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/include/lapacke.h -OutFile lapacke.h
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/include/lapacke_mangling.h -OutFile lapacke_mangling.h
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/include/lapacke_config.h -OutFile lapacke_config.h
-#                  Invoke-WebRequest -Uri https://icl.cs.utk.edu/lapack-for-windows/include/lapacke_utils.h -OutFile lapacke_utils.h
-#
-            - name: CMake Configure
+            - name: Download Ninja
+              run: |
+                  Invoke-WebRequest -Uri "https://github.com/ninja-build/ninja/releases/download/v$env:NINJA_VER/ninja-win.zip" -OutFile ninja.zip
+                  Expand-Archive -Path ninja.zip -DestinationPath .
+
+            - name: Fetch Build Details
               run: |
                   $cwd = (Get-Item -Path ".\").FullName
                   $ref = $env:GITHUB_REF | %{ if ($_ -match "refs/pull/[0-9]+/merge") { $_;} }
@@ -182,23 +55,21 @@ jobs:
                   $buildname = if($prnum -eq $null) { $branch } else { "PR-$prnum" }
                   $dashboard = if($prnum -eq $null) { "Continuous" } else { "Experimental" }
                   $buildname = "$buildname-cpu-openblas"
-                  New-Item -Path . -Name "build" -ItemType "directory"
-                  Set-Location -Path .\build
-                  cmake -G "Visual Studio 16 2019" -A x64 `
-                      -DCMAKE_TOOLCHAIN_FILE:FILEPATH="$cwd/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-                      -DFFTW_INCLUDE_DIR:PATH="$cwd/vcpkg/installed/x64-windows/include" `
-                      -DFFTW_LIBRARY:FILEPATH="$cwd/vcpkg/installed/x64-windows/lib/fftw3.lib" `
-                      -DFFTWF_LIBRARY:FILEPATH="$cwd/vcpkg/installed/x64-windows/lib/fftw3f.lib" `
-                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF `
-                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_FORGE:BOOL=ON `
-                      -DBUILDNAME:STRING="$buildname" `
-                      ..
                   echo "::set-env name=CTEST_DASHBOARD::${dashboard}"
-
-            - name: Build and Test
-              run: |
-                  $cwd = (Get-Item -Path ".\").FullName
-                  $Env:PATH += ";$cwd/vcpkg/installed/x64-windows/bin"
-                  $Env:PATH += ";$cwd/lapacke"
-                  Set-Location -Path $cwd/build
-                  ctest -D Experimental --track ${CTEST_DASHBOARD} -T Test -T Submit -C Release -R cpu -E pinverse -j2
+                  echo "::set-env name=CTEST_BUILDNAME::${buildname}"
+#
+#            - name: CMake Configure
+#              shell: cmd
+#              run: |
+#                  "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" & ^
+#                  mkdir build && cd build & ^
+#                  cmake .. -G Ninja ^
+#                      -DCMAKE_MAKE_PROGRAM:FILEPATH="%GITHUB_WORKSPACE%\ninja.exe" ^
+#                      -DCMAKE_TOOLCHAIN_FILE:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\scripts\buildsystems\vcpkg.cmake" ^
+#                      -DFFTW_INCLUDE_DIR:PATH="%GITHUB_WORKSPACE%\vcpkg\installed/x64-windows\include" ^
+#                      -DFFTW_LIBRARY:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\installed\x64-windows\lib\fftw3.lib" ^
+#                      -DFFTWF_LIBRARY:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\installed\x64-windows\lib\fftw3f.lib" ^
+#                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF ^
+#                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_FORGE:BOOL=ON ^
+#                      -DBUILDNAME:STRING="%CTEST_BUILDNAME%"
+#
