@@ -61,10 +61,13 @@ jobs:
             - name: CMake Configure
               shell: cmd
               run: |
-                  "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" & ^
+                  "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" & ^
                   mkdir build && cd build & ^
                   cmake .. -G Ninja ^
                       -DCMAKE_MAKE_PROGRAM:FILEPATH="%GITHUB_WORKSPACE%\ninja.exe" ^
+                      -DCMAKE_C_COMPILER="cl.exe" ^
+                      -DCMAKE_CXX_COMPILER="cl.exe" ^
+                      -DMSVC_TOOLSET_VERSION=142 ^
                       -DCMAKE_TOOLCHAIN_FILE:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\scripts\buildsystems\vcpkg.cmake" ^
                       -DFFTW_INCLUDE_DIR:PATH="%GITHUB_WORKSPACE%\vcpkg\installed/x64-windows\include" ^
                       -DFFTW_LIBRARY:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\installed\x64-windows\lib\fftw3.lib" ^
