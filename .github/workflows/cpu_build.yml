@@ -61,12 +61,10 @@ jobs:
             - name: CMake Configure
               shell: cmd
               run: |
-                  "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" & ^
+                  "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" & ^
                   mkdir build && cd build & ^
                   cmake .. -G Ninja ^
                       -DCMAKE_MAKE_PROGRAM:FILEPATH="%GITHUB_WORKSPACE%\ninja.exe" ^
-                      -DCMAKE_C_COMPILER=cl ^
-                      -DCMAKE_CXX_COMPILER=cl ^
                       -DCMAKE_TOOLCHAIN_FILE:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\scripts\buildsystems\vcpkg.cmake" ^
                       -DFFTW_INCLUDE_DIR:PATH="%GITHUB_WORKSPACE%\vcpkg\installed/x64-windows\include" ^
                       -DFFTW_LIBRARY:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\installed\x64-windows\lib\fftw3.lib" ^
@@ -74,3 +72,11 @@ jobs:
                       -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF ^
                       -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_FORGE:BOOL=ON ^
                       -DBUILDNAME:STRING="%CTEST_BUILDNAME%"
+
+            - name: Build and Test
+              run: |
+                  $cwd = (Get-Item -Path ".\").FullName
+                  $Env:PATH += ";$cwd/vcpkg/installed/x64-windows/bin"
+                  $Env:PATH += ";$cwd/lapacke"
+                  Set-Location -Path $cwd/build
+                  ctest -D Experimental --track ${CTEST_DASHBOARD} -T Test -T Submit -C Release -R cpu -E pinverse -j2
