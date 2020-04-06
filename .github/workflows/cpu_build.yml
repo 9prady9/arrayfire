@@ -14,7 +14,6 @@ jobs:
         runs-on: windows-latest
         env:
           VCPKG_HASH: b79f7675aaa82eb6c5a96ae764fb1ce379a9d5d6 # March 29, 2020 - [hdf5] add tools and fortran feature
-          LAPACKE_VER: 3.7.0
           NINJA_VER: 1.10.0
         steps:
             - name: Checkout Repository
@@ -46,7 +45,7 @@ jobs:
                   Invoke-WebRequest -Uri "https://github.com/ninja-build/ninja/releases/download/v$env:NINJA_VER/ninja-win.zip" -OutFile ninja.zip
                   Expand-Archive -Path ninja.zip -DestinationPath .
 
-            - name: Fetch Build Details
+            - name: CMake Configure
               run: |
                   $cwd = (Get-Item -Path ".\").FullName
                   $ref = $env:GITHUB_REF | %{ if ($_ -match "refs/pull/[0-9]+/merge") { $_;} }
@@ -55,34 +54,20 @@ jobs:
                   $buildname = if($prnum -eq $null) { $branch } else { "PR-$prnum" }
                   $dashboard = if($prnum -eq $null) { "Continuous" } else { "Experimental" }
                   $buildname = "$buildname-cpu-openblas"
+                  mkdir build && cd build
+                  cmake .. -G "Visual Studio 16 2019" -A x64 `
+                      -DCMAKE_TOOLCHAIN_FILE:FILEPATH="$env:GITHUB_WORKSPACE\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+                      -DFFTW_INCLUDE_DIR:PATH="$env:GITHUB_WORKSPACE\vcpkg\installed/x64-windows\include" `
+                      -DFFTW_LIBRARY:FILEPATH="$env:GITHUB_WORKSPACE\vcpkg\installed\x64-windows\lib\fftw3.lib" `
+                      -DFFTWF_LIBRARY:FILEPATH="$env:GITHUB_WORKSPACE\vcpkg\installed\x64-windows\lib\fftw3f.lib" `
+                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF `
+                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_FORGE:BOOL=ON `
+                      -DBUILDNAME:STRING="$buildname"
                   echo "::set-env name=CTEST_DASHBOARD::${dashboard}"
-                  echo "::set-env name=CTEST_BUILDNAME::${buildname}"
-
-            - name: CMake Configure
-              shell: cmd
-              run: |
-                  CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-                  echo "INCLUDE -------------- %INCLUDE%"
-                  echo "LIB -------------- %LIB%"
-                  mkdir build
-                  cd build
-                  cmake .. -G Ninja ^
-                      -DCMAKE_MAKE_PROGRAM:FILEPATH="%GITHUB_WORKSPACE%\ninja.exe" ^
-                      -DCMAKE_C_COMPILER="cl.exe" ^
-                      -DCMAKE_CXX_COMPILER="cl.exe" ^
-                      -DMSVC_TOOLSET_VERSION=141 ^
-                      -DCMAKE_TOOLCHAIN_FILE:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\scripts\buildsystems\vcpkg.cmake" ^
-                      -DFFTW_INCLUDE_DIR:PATH="%GITHUB_WORKSPACE%\vcpkg\installed/x64-windows\include" ^
-                      -DFFTW_LIBRARY:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\installed\x64-windows\lib\fftw3.lib" ^
-                      -DFFTWF_LIBRARY:FILEPATH="%GITHUB_WORKSPACE%\vcpkg\installed\x64-windows\lib\fftw3f.lib" ^
-                      -DAF_BUILD_CUDA:BOOL=OFF -DAF_BUILD_OPENCL:BOOL=OFF ^
-                      -DAF_BUILD_UNIFIED:BOOL=OFF -DAF_BUILD_FORGE:BOOL=ON ^
-                      -DBUILDNAME:STRING="%CTEST_BUILDNAME%"
 
             - name: Build and Test
               run: |
                   $cwd = (Get-Item -Path ".\").FullName
                   $Env:PATH += ";$cwd/vcpkg/installed/x64-windows/bin"
-                  $Env:PATH += ";$cwd/lapacke"
                   Set-Location -Path $cwd/build
                   ctest -D Experimental --track ${CTEST_DASHBOARD} -T Test -T Submit -C Release -R cpu -E pinverse -j2
