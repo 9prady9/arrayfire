@@ -356,6 +356,7 @@ configure_package_config_file(
 # CMake for examples and tests.
 unset(CMAKE_CXX_VISIBILITY_PRESET)
 
+set(PRINT_INFO_DIR_PATH ${ArrayFire_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR})
 configure_file(
   ${CMAKE_MODULE_PATH}/CTestCustom.cmake
   ${ArrayFire_BINARY_DIR}/CTestCustom.cmake)
