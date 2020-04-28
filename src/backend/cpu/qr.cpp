@@ -7,19 +7,18 @@
  * http://arrayfire.com/licenses/BSD-3-Clause
  ********************************************************/
 
-#include <common/err_common.hpp>
 #include <qr.hpp>
 
 #if defined(WITH_LINEAR_ALGEBRA)
-#include <err_cpu.hpp>
-#include <handle.hpp>
+#include <copy.hpp>
 #include <lapack_helper.hpp>
 #include <math.hpp>
 #include <platform.hpp>
 #include <queue.hpp>
 #include <triangle.hpp>
 #include <af/dim4.hpp>
-#include <cassert>
+
+using af::dim4;
 
 namespace cpu {
 
@@ -67,7 +66,12 @@ void qr(Array<T> &q, Array<T> &r, Array<T> &t, const Array<T> &in) {
     int M      = iDims[0];
     int N      = iDims[1];
 
-    q = padArray<T, T>(in, dim4(M, max(M, N)));
+    const dim4 NullShape(0, 0, 0, 0);
+
+    dim4 endPadding(M - iDims[0], max(M, N) - iDims[1], 0, 0);
+    q = (endPadding == NullShape
+             ? copyArray(in)
+             : padArrayBorders(in, NullShape, endPadding, AF_PAD_ZERO));
     q.resetDims(iDims);
     t = qr_inplace(q);
 
@@ -104,6 +108,8 @@ Array<T> qr_inplace(Array<T> &in) {
 }  // namespace cpu
 
 #else  // WITH_LINEAR_ALGEBRA
+
+#include <err_cpu.hpp>
 
 namespace cpu {
 
