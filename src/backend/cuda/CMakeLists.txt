@@ -563,6 +563,7 @@ cuda_add_library(afcuda
     reorder.cpp
     reorder.hpp
     resize.hpp
+    resize_array.cpp
     rotate.hpp
     scalar.hpp
     scan.cpp
