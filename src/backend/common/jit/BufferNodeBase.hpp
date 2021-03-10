@@ -46,11 +46,20 @@ class BufferNodeBase : public common::Node {
     }
 
     bool isLinear(dim_t dims[4]) const final {
-        bool same_dims = true;
-        for (int i = 0; same_dims && i < 4; i++) {
-            same_dims &= (dims[i] == m_param.dims[i]);
+        size_t selems  = 1;
+        size_t delems  = 1;
+        bool sameShape = true;
+        for (int d = 0; d < AF_MAX_DIMS; ++d) {
+            selems *= m_param.dims[d];
+            delems *= dims[d];
+            sameShape &= (dims[d] == m_param.dims[d]);
         }
-        return m_linear_buffer && same_dims;
+        const bool sameTotalElems = selems == delems;
+        // If same shape or total number of elements for the  shapes
+        // pointed by argument 'dim' and member variable 'm_param.dims'
+        // then return m_linear_buffer flag.
+        // Otherwise, return false.
+        return (sameShape || sameTotalElems ? m_linear_buffer : false);
     }
 
     void genKerName(std::string &kerString,

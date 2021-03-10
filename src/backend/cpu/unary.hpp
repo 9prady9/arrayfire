@@ -87,11 +87,13 @@ template<typename T, af_op_t op>
 Array<T> unaryOp(const Array<T> &in, dim4 outDim = dim4(-1, -1, -1, -1)) {
     using UnaryNode = jit::UnaryNode<T, T, op>;
 
-    common::Node_ptr in_node = in.getNode();
-    UnaryNode *node          = new UnaryNode(in_node);
+    common::Node_ptr in_node  = in.getNode();
+    UnaryNode *node           = new UnaryNode(in_node);
+    const bool isOutSameShape = (outDim == dim4(-1, -1, -1, -1));
+    const dim4 outShape       = (isOutSameShape ? in.dims() : outDim);
+    const dim4 oldShape       = (isOutSameShape ? outDim : in.dims());
 
-    if (outDim == dim4(-1, -1, -1, -1)) { outDim = in.dims(); }
-    return createNodeArray<T>(outDim, common::Node_ptr(node));
+    return createNodeArray<T>(outShape, common::Node_ptr(node), oldShape);
 }
 
 #define iszero(a) ((a) == 0)

@@ -26,8 +26,8 @@ class BufferNode : public TNode<T> {
     shared_ptr<T> m_sptr;
     T *m_ptr;
     unsigned m_bytes;
-    dim_t m_strides[4];
-    dim_t m_dims[4];
+    dim_t m_strides[AF_MAX_DIMS];
+    dim_t m_dims[AF_MAX_DIMS];
     std::once_flag m_set_data_flag;
     bool m_linear_buffer;
 
@@ -120,9 +120,20 @@ class BufferNode : public TNode<T> {
     }
 
     bool isLinear(dim_t *dims) const final {
-        return m_linear_buffer && dims[0] == m_dims[0] &&
-               dims[1] == m_dims[1] && dims[2] == m_dims[2] &&
-               dims[3] == m_dims[3];
+        size_t selems  = 1;
+        size_t delems  = 1;
+        bool sameShape = true;
+        for (int d = 0; d < AF_MAX_DIMS; ++d) {
+            selems *= m_dims[d];
+            delems *= dims[d];
+            sameShape &= (dims[d] == m_dims[d]);
+        }
+        const bool sameTotalElems = selems == delems;
+        // If same shape or total number of elements for the  shapes
+        // pointed by argument 'dim' and member variable 'm_param.dims'
+        // then return m_linear_buffer flag.
+        // Otherwise, return false.
+        return (sameShape || sameTotalElems ? m_linear_buffer : false);
     }
 
     bool isBuffer() const final { return true; }

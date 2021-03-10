@@ -95,11 +95,11 @@ Array<T>::Array(const dim4 &dims, T *const in_data, bool is_device,
 }
 
 template<typename T>
-Array<T>::Array(const af::dim4 &dims, Node_ptr n)
+Array<T>::Array(const af::dim4 &dims, Node_ptr n, const af::dim4 originalDims)
     : info(getActiveDeviceId(), dims, 0, calcStrides(dims),
            static_cast<af_dtype>(dtype_traits<T>::af_type))
     , data()
-    , data_dims(dims)
+    , data_dims(originalDims == dim4(-1, -1, -1, -1) ? dims : originalDims)
     , node(move(n))
     , ready(false)
     , owner(true) {}
@@ -272,8 +272,9 @@ kJITHeuristics passesJitHeuristics(Node *root_node) {
 }
 
 template<typename T>
-Array<T> createNodeArray(const dim4 &dims, Node_ptr node) {
-    Array<T> out = Array<T>(dims, node);
+Array<T> createNodeArray(const dim4 &dims, Node_ptr node,
+                         const dim4 originalDims) {
+    Array<T> out = Array<T>(dims, node, originalDims);
     return out;
 }
 
@@ -349,7 +350,8 @@ void Array<T>::setDataDims(const dim4 &new_dims) {
     template Array<T> createSubArray<T>(                                      \
         const Array<T> &parent, const vector<af_seq> &index, bool copy);      \
     template void destroyArray<T>(Array<T> * A);                              \
-    template Array<T> createNodeArray<T>(const dim4 &dims, Node_ptr node);    \
+    template Array<T> createNodeArray<T>(const dim4 &dims, Node_ptr node,     \
+                                         const dim4);                         \
     template void Array<T>::eval();                                           \
     template void Array<T>::eval() const;                                     \
     template T *Array<T>::device();                                           \

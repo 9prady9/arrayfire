@@ -48,8 +48,8 @@ void evalMultiple(std::vector<Array<T> *> array_ptrs);
 
 // Creates a new Array object on the heap and returns a reference to it.
 template<typename T>
-Array<T> createNodeArray(const af::dim4 &dims, common::Node_ptr node);
-
+Array<T> createNodeArray(const af::dim4 &dims, common::Node_ptr node,
+                         const af::dim4 originalDims = dim4(-1, -1, -1, -1));
 template<typename T>
 Array<T> createValueArray(const af::dim4 &dims, const T &value);
 
@@ -129,7 +129,8 @@ class Array {
                    bool copy_device = false);
     Array(const Array<T> &parent, const dim4 &dims, const dim_t &offset,
           const dim4 &stride);
-    explicit Array(const af::dim4 &dims, common::Node_ptr n);
+    explicit Array(const af::dim4 &dims, common::Node_ptr n,
+                   const af::dim4 originalDims = dim4(-1, -1, -1, -1));
     Array(const af::dim4 &dims, const af::dim4 &strides, dim_t offset,
           T *const in_data, bool is_device = false);
 
@@ -260,7 +261,8 @@ class Array {
 
     friend Array<T> createEmptyArray<T>(const af::dim4 &dims);
     friend Array<T> createNodeArray<T>(const af::dim4 &dims,
-                                       common::Node_ptr node);
+                                       common::Node_ptr node,
+                                       const af::dim4 originalDims);
 
     friend Array<T> createSubArray<T>(const Array<T> &parent,
                                       const std::vector<af_seq> &index,

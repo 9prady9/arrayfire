@@ -22,7 +22,7 @@ void evalMultiple(std::vector<Param<T>> arrays,
     af::dim4 odims = arrays[0].dims();
     af::dim4 ostrs = arrays[0].strides();
 
-    common::Node_map_t nodes;
+    common::Node_map_t nodesMap;
     std::vector<T *> ptrs;
     std::vector<TNode<T> *> output_nodes;
     std::vector<common::Node *> full_nodes;
@@ -33,7 +33,11 @@ void evalMultiple(std::vector<Param<T>> arrays,
         ptrs.push_back(arrays[i].get());
         output_nodes.push_back(
             reinterpret_cast<TNode<T> *>(output_nodes_[i].get()));
-        output_nodes_[i]->getNodesMap(nodes, full_nodes, ids);
+        // Fetch the following info for current output node:
+        // - Node pointer to Id mapping in nodesMap
+        // - List of all Nodes required to evaluate the current output node
+        // - List of all Node-Id to children-Ids mapping
+        output_nodes_[i]->getNodesMap(nodesMap, full_nodes, ids);
     }
 
     bool is_linear = true;
