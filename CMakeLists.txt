@@ -75,7 +75,7 @@ option(AF_WITH_STATIC_MKL "Link against static Intel MKL libraries" OFF)
 set(AF_COMPUTE_LIBRARY "Intel-MKL"
     CACHE STRING "Compute library for signal processing and linear algebra routines")
 set_property(CACHE AF_COMPUTE_LIBRARY
-    PROPERTY STRINGS "Intel-MKL" "FFTW/LAPACK/OpenBLAS")
+    PROPERTY STRINGS "Intel-MKL" "AMD-AOCL" "FFTW/LAPACK/OpenBLAS")
 
 if(WIN32)
   set(AF_STACKTRACE_TYPE "Windbg" CACHE STRING "The type of backtrace features. Windbg(simple), None")
@@ -145,6 +145,10 @@ if(${AF_COMPUTE_LIBRARY} STREQUAL "Intel-MKL")
   find_package(MKL REQUIRED)
   dependency_check(MKL_FOUND "Please ensure Intel-MKL / oneAPI-oneMKL is installed")
   set(BUILD_WITH_MKL ON)
+elseif(${AF_COMPUTE_LIBRARY} STREQUAL "AMD-AOCL")
+  find_package(AOCL REQUIRED COMPONENTS linalg fft)
+  dependency_check(AOCL_FOUND "Please ensure AMD AOCL is installed")
+  set(BUILD_WITH_AOCL ON)
 else() # A combination of fftw, lapacke and blas libraries
   dependency_check(FFTW_FOUND "FFTW not found")
   dependency_check(CBLAS_FOUND "CBLAS not found")

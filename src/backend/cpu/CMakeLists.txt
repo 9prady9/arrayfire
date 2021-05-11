@@ -318,6 +318,14 @@ if(BUILD_WITH_MKL)
   else()
       target_link_libraries(afcpu PRIVATE MKL::RT)
   endif()
+elseif(BUILD_WITH_AOCL)
+  target_link_libraries(afcpu
+    PRIVATE
+      AOCL::blis
+      AOCL::fftw_mt
+      AOCL::fftwf_mt
+      AOCL::flame
+    )
 else()
   target_link_libraries(afcpu
     PRIVATE
@@ -331,7 +339,7 @@ else()
   endif()
 endif()
 
-if(LAPACK_FOUND OR BUILD_WITH_MKL)
+if(LAPACK_FOUND OR BUILD_WITH_MKL OR BUILD_WITH_AOCL)
   target_compile_definitions(afcpu PRIVATE WITH_LINEAR_ALGEBRA)
 endif()
 
