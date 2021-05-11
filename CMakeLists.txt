@@ -53,7 +53,6 @@ find_package(FFTW)
 find_package(CBLAS)
 find_package(LAPACKE)
 find_package(Doxygen)
-find_package(MKL)
 
 include(boost_package)
 
@@ -72,6 +71,11 @@ option(AF_WITH_LOGGING  "Build ArrayFire with logging support" ON)
 option(AF_WITH_STACKTRACE  "Add stacktraces to the error messages." ON)
 option(AF_CACHE_KERNELS_TO_DISK "Enable caching kernels to disk" ON)
 option(AF_WITH_STATIC_MKL "Link against static Intel MKL libraries" OFF)
+
+set(AF_COMPUTE_LIBRARY "Intel-MKL"
+    CACHE STRING "Compute library for signal processing and linear algebra routines")
+set_property(CACHE AF_COMPUTE_LIBRARY
+    PROPERTY STRINGS "Intel-MKL" "FFTW/LAPACK/OpenBLAS")
 
 if(WIN32)
   set(AF_STACKTRACE_TYPE "Windbg" CACHE STRING "The type of backtrace features. Windbg(simple), None")
@@ -117,6 +121,7 @@ mark_as_advanced(
   AF_WITH_STATIC_FREEIMAGE
   AF_WITH_NONFREE
   AF_WITH_IMAGEIO
+  AF_WITH_RELATIVE_TEST_DIR
   AF_TEST_WITH_MTX_FILES
   ArrayFire_DIR
   Boost_INCLUDE_DIR
@@ -135,6 +140,17 @@ mark_as_advanced(
   FG_BUILD_OFFLINE
   )
 mark_as_advanced(CLEAR CUDA_VERSION)
+
+if(${AF_COMPUTE_LIBRARY} STREQUAL "Intel-MKL")
+  find_package(MKL REQUIRED)
+  dependency_check(MKL_FOUND "Please ensure Intel-MKL / oneAPI-oneMKL is installed")
+  set(BUILD_WITH_MKL ON)
+else() # A combination of fftw, lapacke and blas libraries
+  dependency_check(FFTW_FOUND "FFTW not found")
+  dependency_check(CBLAS_FOUND "CBLAS not found")
+  dependency_check(LAPACK_FOUND "LAPACK not found")
+  set(BUILD_WITH_CFL ON) #C(blas)F(ftw)L(apack)
+endif()
 
 #Configure forge submodule
 #forge is included in ALL target if AF_BUILD_FORGE is ON
@@ -373,7 +389,7 @@ install(FILES ${ArrayFire_BINARY_DIR}/cmake/install/ArrayFireConfig.cmake
               DESTINATION ${AF_INSTALL_CMAKE_DIR}
               COMPONENT cmake)
 
-if((USE_CPU_MKL OR USE_OPENCL_MKL) AND AF_INSTALL_STANDALONE)
+if(BUILD_WITH_MKL AND AF_INSTALL_STANDALONE)
   if(TARGET MKL::ThreadingLibrary)
     get_filename_component(mkl_tl ${MKL_ThreadingLibrary_LINK_LIBRARY} REALPATH)
     install(FILES

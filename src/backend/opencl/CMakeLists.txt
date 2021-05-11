@@ -11,6 +11,8 @@ include(build_CLBlast)
 include(build_clFFT)
 include(FileToString)
 
+dependency_check(OpenCL_FOUND "OpenCL not found.")
+
 generate_product_version(af_opencl_ver_res_file
   FILE_NAME "afopencl"
   FILE_DESCRIPTION "OpenCL Backend Dynamic-link library"
@@ -429,7 +431,7 @@ if(APPLE)
   target_link_libraries(afopencl PRIVATE OpenGL::GL)
 endif()
 
-if(LAPACK_FOUND OR (USE_OPENCL_MKL AND MKL_Shared_FOUND))
+if(LAPACK_FOUND OR BUILD_WITH_MKL)
   target_sources(afopencl
     PRIVATE
       magma/gebrd.cpp
@@ -462,8 +464,7 @@ if(LAPACK_FOUND OR (USE_OPENCL_MKL AND MKL_Shared_FOUND))
       #magma/unmqr2.cpp
       )
 
-  if(USE_OPENCL_MKL)
-    dependency_check(MKL_Shared_FOUND "MKL not found")
+  if(BUILD_WITH_MKL)
     target_compile_definitions(afopencl PRIVATE USE_MKL)
 
     if(AF_WITH_STATIC_MKL)
@@ -472,13 +473,10 @@ if(LAPACK_FOUND OR (USE_OPENCL_MKL AND MKL_Shared_FOUND))
         target_link_libraries(afopencl PRIVATE MKL::RT)
     endif()
   else()
-    dependency_check(OpenCL_FOUND "OpenCL not found.")
-
     if(USE_CPU_F77_BLAS)
       target_compile_definitions(afopencl PRIVATE USE_F77_BLAS)
     endif()
 
-    dependency_check(CBLAS_LIBRARIES "CBLAS not found.")
     target_include_directories(afopencl
       PRIVATE
         ${CBLAS_INCLUDE_DIR}
@@ -489,10 +487,7 @@ if(LAPACK_FOUND OR (USE_OPENCL_MKL AND MKL_Shared_FOUND))
         ${LAPACK_LIBRARIES})
   endif()
 
-  target_compile_definitions(
-    afopencl
-    PRIVATE
-      WITH_LINEAR_ALGEBRA)
+  target_compile_definitions(afopencl PRIVATE WITH_LINEAR_ALGEBRA)
 endif()
 
 af_split_debug_info(afopencl ${AF_INSTALL_LIB_DIR})
