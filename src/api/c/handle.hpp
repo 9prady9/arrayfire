@@ -37,8 +37,6 @@ namespace {
 
 template<typename T>
 detail::Array<T> modDims(const detail::Array<T> &in, const af::dim4 &newDims) {
-    in.eval();  // FIXME: Figure out a better way
-
     detail::Array<T> Out = in;
     if (!in.isLinear()) Out = detail::copyArray<T>(in);
     Out.setDataDims(newDims);

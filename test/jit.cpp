@@ -231,14 +231,20 @@ TEST(JIT, CPP_Multi_pre_eval) {
 }
 
 TEST(JIT, CPP_common_node) {
-    array r = seq(-3, 3, 0.5);
+    //array r = seq(-3, 3, 0.5);
+    array r = 1.0 * iota(dim4(9));
 
     int n = r.dims(0);
 
     array x = tile(r, 1, r.dims(0));
-    array y = tile(r.T(), r.dims(0), 1);
     x.eval();
+    printf("before r.T()\n");
+    array y = tile(r.T(), r.dims(0), 1);
     y.eval();
+    printf("after r.T() & y eval\n");
+    af_print(y);
+    af_print(x);
+    af_print(r);
 
     vector<float> hx(x.elements());
     vector<float> hy(y.elements());
