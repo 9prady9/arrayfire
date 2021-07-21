@@ -30,12 +30,10 @@ else()
   set(FG_VERSION "${FG_VERSION_MAJOR}.${FG_VERSION_MINOR}.${FG_VERSION_PATCH}")
   set(FG_API_VERSION_CURRENT ${FG_VERSION_MAJOR}${FG_VERSION_MINOR})
 
-  FetchContent_Declare(
-    ${forge_prefix}
-    GIT_REPOSITORY https://github.com/arrayfire/forge.git
-    GIT_TAG        "v${FG_VERSION}"
+  af_dep_check_and_populate(${forge_prefix}
+    URI https://github.com/arrayfire/forge.git
+    REF "v${FG_VERSION}"
   )
-  af_dep_check_and_populate(${forge_prefix})
 
   if(AF_BUILD_FORGE)
     set(af_FETCHCONTENT_BASE_DIR ${FETCHCONTENT_BASE_DIR})

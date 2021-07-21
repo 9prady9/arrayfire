@@ -70,7 +70,10 @@ jobs:
                   done
                   shopt -u extglob
                   rm -rf matrixmarket
-                  cd ../../..
+                  cp -r ./* ../../extern/
+                  cd ../../
+                  rm -r build
+                  cd ..
                   tar -cjf arrayfire-full-${AF_VER}.tar.bz2 arrayfire-full-${AF_VER}/
                   echo "UPLOAD_FILE=arrayfire-full-${AF_VER}.tar.bz2" >> $GITHUB_ENV
 
